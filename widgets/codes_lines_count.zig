@@ -1,18 +1,17 @@
 const std = @import("std");
 
 pub fn main() !void {
-    const root_path = ".";
-    const cwd = std.fs.cwd();
+    const root_path = "../";
 
-    // 打开目标目录
-    const root_dir = cwd.openDir(root_path, .{ .iterate = true }) catch |err| {
-        std.debug.print("Error opening directory '{s}': {any}\n", .{ root_path, err });
+    const root_dir = std.fs.cwd().openDir(root_path, .{ .iterate = true }) catch |err| {
+        std.debug.print("无法打开目录\n{s}: {any}\n", .{ root_path, err });
         return err;
     };
 
     var total_lines: usize = 0;
     try walkZigFiles(root_dir, std.heap.page_allocator, &total_lines);
-    std.debug.print("Total lines in .zig files: {}\n", .{total_lines});
+
+    std.debug.print("Total lines in {s} files: {}\n", .{ root_path, total_lines });
 }
 
 fn walkZigFiles(dir: std.fs.Dir, allocator: std.mem.Allocator, total: *usize) !void {
