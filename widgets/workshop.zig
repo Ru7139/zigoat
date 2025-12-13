@@ -31,28 +31,39 @@ pub fn main() !void {
     // std.debug.print("{s}\n", .{body.items});
 
     // Create a general purpose allocator
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
+    //
+    //
+    // devide
+    //
+    //
+    //
+    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    // defer _ = gpa.deinit();
 
-    // Create a HTTP client
-    var client = std.http.Client{ .allocator = gpa.allocator() };
-    defer client.deinit();
+    // // Create a HTTP client
+    // var client = std.http.Client{ .allocator = gpa.allocator() };
+    // defer client.deinit();
 
-    // Allocate a buffer for server headers
-    var buf: [4096]u8 = undefined;
+    // // Allocate a buffer for server headers
+    // var buf: [4096]u8 = undefined;
 
-    // Start the HTTP request
-    const uri = try std.Uri.parse("https://www.google.com?q=zig");
-    var req = try client.open(.GET, uri, .{ .server_header_buffer = &buf });
-    defer req.deinit();
+    // // Start the HTTP request
+    // const uri = try std.Uri.parse("https://www.google.com?q=zig");
+    // var req = try client.open(.GET, uri, .{ .server_header_buffer = &buf });
+    // defer req.deinit();
 
-    // Send the HTTP request headers
-    try req.send();
-    // Finish the body of a request
-    try req.finish();
+    // // Send the HTTP request headers
+    // try req.send();
+    // // Finish the body of a request
+    // try req.finish();
 
-    // Waits for a response from the server and parses any headers that are sent
-    try req.wait();
+    // // Waits for a response from the server and parses any headers that are sent
+    // try req.wait();
 
-    std.debug.print("status={d}\n", .{req.response.status});
+    // std.debug.print("status={d}\n", .{req.response.status});
+
+    var vec = std.ArrayList(u32).empty;
+    vec.capacity = 100;
+
+    std.debug.print("{}", .{vec});
 }
