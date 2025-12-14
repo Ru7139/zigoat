@@ -62,8 +62,20 @@ pub fn main() !void {
 
     // std.debug.print("status={d}\n", .{req.response.status});
 
-    var vec = std.ArrayList(u32).empty;
-    vec.capacity = 100;
+    // var vec = std.ArrayList(u32).empty;
+    // vec.capacity = 100;
 
-    std.debug.print("{}", .{vec});
+    // std.debug.print("{}", .{vec});
+
+    const time_seed: u64 = @as(u64, @intCast(std.time.timestamp())) * 2;
+
+    var xsr_engine = std.Random.Xoshiro256.init(time_seed);
+    var vec: [100]f64 = undefined;
+
+    for (vec[0..100]) |*i| {
+        const value = @as(f64, @floatFromInt(xsr_engine.next()));
+        const base = @as(f64, @floatFromInt(2 << 64 - 1));
+        i.* = value / base;
+    }
+    std.debug.print("{any}", .{vec});
 }
