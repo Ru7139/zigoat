@@ -83,6 +83,10 @@ pub fn generate_random_array(comptime T: type, allocator: std.mem.Allocator, arr
             }
         } else unreachable;
 
+        // 内存占用方面
+        // 1 百万个实体(粒子，NPC，着色器线程)
+        // xoshiro128 节省 16 MB 内存
+
         // 精度只能达到1/2^64或1/2^32的精度
         // 更高的精度，可以使用std.Random.float(r: Random, comptime T: type) T
         return arr;
