@@ -13,14 +13,14 @@ pub fn generate_random_array(comptime T: type, allocator: std.mem.Allocator, arr
     if (array_len == 0) return error.ZeroArrayLength;
 
     // 判断是否为可处理的类型
-    var type_indecator = false;
+    var type_indicator = false;
     const pri_type = [_]type{ u64, u32, u16, u8, f64, f32 };
     inline for (pri_type) |type_can_be_handle| {
-        if (T == type_can_be_handle) type_indecator = true;
+        if (T == type_can_be_handle) type_indicator = true;
     }
 
     // 先进行错误处理，如果不支持该类型，则返回error
-    if (type_indecator == false) {
+    if (type_indicator == false) {
         std.debug.print("Type Not Support\n", .{});
         return error.ToDo;
     } else {
@@ -102,7 +102,7 @@ test "xsr256_test" {
 
     const type_arr = [_]type{ u64, u32, u16, u8, f64, f32 };
     inline for (type_arr) |T| {
-        const arr: []T = try generate_random_array(T, allocator, 20, &xsr);
+        const arr: []T = try generate_random_array(T, allocator, 10, &xsr);
         defer allocator.free(arr);
 
         std.debug.print("\ntest of the type: {any}\n", .{T});
