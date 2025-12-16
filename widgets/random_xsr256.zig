@@ -17,6 +17,8 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
 
     const type_bits = @typeInfo(T).int.bits;
 
+    const random_machine = xsr.random();
+
     if (@typeName(T)[0] == 'u') {
         if (type_bits == 64) {
             for (arr[0..array_len]) |*val| val.* = xsr.next();
@@ -39,7 +41,6 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
             }
         }
     } else if (@typeName(T)[0] == 'i') {
-        const random_machine = xsr.random();
         for (arr[0..array_len]) |*val| val.* = random_machine.int(T);
     } else {
         unreachable;
