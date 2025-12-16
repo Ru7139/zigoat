@@ -9,9 +9,8 @@ pub fn xsr256_with_time_seed() std.Random.Xoshiro256 {
 }
 
 pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, array_len: usize, xsr: *std.Random.Xoshiro256) ![]T {
-    const type_info = @typeInfo(T);
-    if (type_info != .int) return error.TypeNotSupport;
-    if (type_info.int.bits > 128) return error.TooManyBitsForTheType;
+    if (@typeInfo(T) != .int) return error.TypeNotSupport;
+    if (@typeInfo(T).int.bits > 128) return error.TooManyBitsForTheType;
     if (array_len == 0) return error.ZeroArrayLength;
 
     var arr: []T = try allocator.alloc(T, array_len); // 申请内存
@@ -28,10 +27,11 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
         }
     } else if (type_bits < 64) {
         var i: usize = 0;
+        const trunc_times = @as(usize, @divTrunc(64, type_bits));
+
         while (i < array_len) {
             if (@typeName(T)[0] == 'u') {
                 const num = xsr.next();
-                const trunc_times = @as(usize, @divTrunc(64, type_bits));
                 inline for (0..trunc_times) |j| {
                     if (i >= array_len) break;
                     arr[i] = @truncate(num >> (j * type_bits));
@@ -39,7 +39,6 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
                 }
             } else if (@typeName(T)[0] == 'i') {
                 const num = @as(i64, @bitCast(xsr.next()));
-                const trunc_times = @as(usize, @divTrunc(64, type_bits));
                 inline for (0..trunc_times) |j| {
                     if (i >= array_len) break;
                     arr[i] = @truncate(num >> (j * type_bits));
@@ -54,52 +53,6 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
             val.* = high | low;
         }
     } else unreachable;
-
-    // if (@typeName(T)[0] == 'u') {
-    //     if (type_bits == 64) {
-    //         for (arr[0..array_len]) |*val| val.* = xsr.next();
-    //     } else if (type_bits < 64) {
-    //         var i: usize = 0;
-    //         while (i < array_len) {
-    //             const num = xsr.next();
-    //             const trunc_times = @as(usize, @divTrunc(64, type_bits));
-    //             inline for (0..trunc_times) |j| {
-    //                 if (i >= array_len) break;
-    //                 arr[i] = @truncate(num >> (j * type_bits));
-    //                 i = i + 1;
-    //             }
-    //         }
-    //     } else if (type_bits > 64) {
-    //         for (arr[0..array_len]) |*val| {
-    //             const high = @as(T, @intCast(xsr.next())) << (type_bits - 64);
-    //             const low = @as(T, xsr.next() >> (128 - type_bits));
-    //             val.* = high | low;
-    //         }
-    //     }
-    // } else if (@typeName(T)[0] == 'i') {
-    //     if (type_bits == 64) {
-    //         for (arr[0..array_len]) |*val| val.* = @as(i64, @bitCast(xsr.next()));
-    //     } else if (type_bits < 64) {
-    //         var i: usize = 0;
-    //         while (i < array_len) {
-    //             const num = @as(i64, @bitCast(xsr.next()));
-    //             const trunc_times = @as(usize, @divTrunc(64, type_bits));
-    //             inline for (0..trunc_times) |j| {
-    //                 if (i >= array_len) break;
-    //                 arr[i] = @truncate(num >> (j * type_bits));
-    //                 i = i + 1;
-    //             }
-    //         }
-    //     } else if (type_bits > 64) {
-    //         for (arr[0..array_len]) |*val| {
-    //             const high = @as(T, @intCast(xsr.next())) << (type_bits - 64);
-    //             const low = @as(T, xsr.next() >> (128 - type_bits));
-    //             val.* = high | low;
-    //         }
-    //     }
-    // } else {
-    //     unreachable;
-    // }
 
     return arr;
 }
