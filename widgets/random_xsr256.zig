@@ -75,11 +75,6 @@ test "xsr256_unsigned_test" {
             inline for (types_arr) |T| {
                 const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
                 defer allocator.free(arr);
-                // if (T == u128) {
-                //     for (arr[0..20]) |value| {
-                //         std.debug.print("{x}\n", .{value});
-                //     }
-                // }
             }
         }
     }
