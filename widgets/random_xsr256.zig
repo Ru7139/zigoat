@@ -30,22 +30,6 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
                     i = i + 1;
                 }
             }
-
-            // if (type_bits % 8 == 0) {
-            //     var i: usize = 0;
-            //     while (i < array_len) {
-            //         const num = xsr.next();
-            //         const trunc_times = @as(usize, @divTrunc(64, type_bits));
-            //         inline for (0..trunc_times) |j| {
-            //             if (i >= array_len) break;
-            //             arr[i] = @truncate(num >> (j * type_bits));
-            //             i = i + 1;
-            //         }
-            //     }
-            // } else {
-            //     const random_machine = xsr.random();
-            //     for (arr[0..array_len]) |*val| val.* = random_machine.int(T);
-            // }
         }
     } else if (@typeName(T)[0] == 'i') {
         const random_machine = xsr.random();
@@ -85,8 +69,8 @@ test "xsr256_test" {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    // const type_arr = [_]type{ u8, u16, u24, u32, u40, u48, u56, u64, u72, u80, u88, u96, u104, u112, u120, u128, i8, i16, i24, i32, i40, i48, i56, i64, i72, i80, i88, i96, i104, i112, i120, i128 };
-    const type_arr = [_]type{ u8, u12, u16, u20, u24, u28, u32, u36, u40, u44, u48, u52, u56, u60, u64 };
+    const type_arr = [_]type{ u8, u16, u24, u32, u40, u48, u56, u64, u72, u80, u88, u96, u104, u112, u120, u128, i8, i16, i24, i32, i40, i48, i56, i64, i72, i80, i88, i96, i104, i112, i120, i128 };
+    // const type_arr = [_]type{ u8, u12, u16, u20, u24, u28, u32, u36, u40, u44, u48, u52, u56, u60, u64 };
 
     inline for (0..20) |_| {
         const time = std.time.milliTimestamp();
