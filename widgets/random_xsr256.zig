@@ -56,6 +56,9 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
 }
 
 test "xsr256_unsigned_test" {
+    const time = std.time.milliTimestamp();
+    defer std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
+
     var xsr = xsr256_with_time_seed();
 
     var gpa = std.heap.DebugAllocator(.{}){};
@@ -76,9 +79,6 @@ test "xsr256_unsigned_test" {
 
     inline for (types_hold_arr) |types_arr| {
         inline for (0..3) |_| {
-            const time = std.time.milliTimestamp();
-            defer std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
-
             inline for (types_arr) |T| {
                 const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
                 defer allocator.free(arr);
@@ -88,6 +88,9 @@ test "xsr256_unsigned_test" {
 }
 
 test "xsr256_signed_int_test" {
+    const time = std.time.milliTimestamp();
+    defer std.debug.print("xsr256_signed_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
+
     var xsr = xsr256_with_time_seed();
 
     var gpa = std.heap.DebugAllocator(.{}){};
@@ -108,9 +111,6 @@ test "xsr256_signed_int_test" {
 
     inline for (types_hold_arr) |types_arr| {
         inline for (0..3) |_| {
-            const time = std.time.milliTimestamp();
-            defer std.debug.print("xsr256_signed_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
-
             inline for (types_arr) |T| {
                 const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
                 defer allocator.free(arr);
