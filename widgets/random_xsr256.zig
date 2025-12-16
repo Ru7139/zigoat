@@ -64,7 +64,7 @@ test "xsr256_unsigned_test" {
     const types_hold_arr = [_]*const [16]type{ &odd_arr1, &odd_arr2, &odd_arr3, &odd_arr4, &even_arr1, &even_arr2, &even_arr3, &even_arr4 };
 
     inline for (types_hold_arr) |types_arr| {
-        inline for (0..3) |_| {
+        inline for (0..5) |_| {
             const time = std.time.milliTimestamp();
             defer std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
 
