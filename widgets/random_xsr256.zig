@@ -18,19 +18,21 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
     const type_bits = @typeInfo(T).int.bits;
 
     if (type_bits == 64) {
-        for (arr[0..array_len]) |*val| {
-            if (T == u64) {
-                val.* = xsr.next();
-            } else if (T == i64) {
-                val.* = @as(i64, @bitCast(xsr.next()));
-            } else unreachable;
+        switch (T) {
+            u64 => {
+                for (arr[0..array_len]) |*val| val.* = xsr.next();
+            },
+            i64 => {
+                for (arr[0..array_len]) |*val| val.* = @as(i64, @bitCast(xsr.next()));
+            },
+            else => unreachable,
         }
     } else if (type_bits < 64) {
-        var i: usize = 0;
         const trunc_times = @as(usize, @divTrunc(64, type_bits));
 
+        var i: usize = 0;
         while (i < array_len) {
-            const nk = switch (@typeName(T)[0]) {
+            const num = switch (@typeName(T)[0]) {
                 'u' => xsr.next(),
                 'i' => @as(i64, @bitCast(xsr.next())),
                 else => unreachable,
@@ -38,25 +40,9 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
 
             inline for (0..trunc_times) |j| {
                 if (i >= array_len) break;
-                arr[i] = @truncate(nk >> (j * type_bits));
+                arr[i] = @truncate(num >> (j * type_bits));
                 i = i + 1;
             }
-
-            // if (@typeName(T)[0] == 'u') {
-            //     const num = xsr.next();
-            //     inline for (0..trunc_times) |j| {
-            //         if (i >= array_len) break;
-            //         arr[i] = @truncate(num >> (j * type_bits));
-            //         i = i + 1;
-            //     }
-            // } else if (@typeName(T)[0] == 'i') {
-            //     const num = @as(i64, @bitCast(xsr.next()));
-            //     inline for (0..trunc_times) |j| {
-            //         if (i >= array_len) break;
-            //         arr[i] = @truncate(num >> (j * type_bits));
-            //         i = i + 1;
-            //     }
-            // } else unreachable;
         }
     } else if (type_bits > 64) {
         for (arr[0..array_len]) |*val| {
