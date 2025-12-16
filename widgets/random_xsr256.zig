@@ -30,6 +30,9 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
                     i = i + 1;
                 }
             }
+        } else if (type_bits > 64) {
+            const random_machine = xsr.random();
+            for (arr[0..array_len]) |*val| val.* = random_machine.int(T);
         }
     } else if (@typeName(T)[0] == 'i') {
         const random_machine = xsr.random();
@@ -41,23 +44,73 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
     return arr;
 }
 
-test "xsr256_test" {
+test "xsr256_unsigned_test" {
     var xsr = xsr256_with_time_seed();
 
     var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    const type_arr = [_]type{ u8, u16, u24, u32, u40, u48, u56, u64, u72, u80, u88, u96, u104, u112, u120, u128, i8, i16, i24, i32, i40, i48, i56, i64, i72, i80, i88, i96, i104, i112, i120, i128 };
+    const type_arr1 = [16]type{ u2, u4, u6, u8, u10, u12, u14, u16, u18, u20, u22, u24, u26, u28, u30, u32 };
+    const type_arr2 = [16]type{ u34, u36, u38, u40, u42, u44, u46, u48, u50, u52, u54, u56, u58, u60, u62, u64 };
+    const type_arr3 = [16]type{ u66, u68, u70, u72, u74, u76, u78, u80, u82, u84, u86, u88, u90, u92, u94, u96 };
+    const type_arr4 = [16]type{ u98, u100, u102, u104, u106, u108, u110, u112, u114, u116, u118, u120, u122, u124, u126, u128 };
 
-    inline for (0..20) |_| {
-        const time = std.time.milliTimestamp();
+    const types_hold_arr = [_]*const [16]type{ &type_arr1, &type_arr2, &type_arr3, &type_arr4 };
 
-        inline for (type_arr) |T| {
-            const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
-            defer allocator.free(arr);
+    inline for (types_hold_arr) |types_arr| {
+        inline for (0..5) |_| {
+            const time = std.time.milliTimestamp();
+            defer std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
+
+            inline for (types_arr) |T| {
+                const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
+                defer allocator.free(arr);
+            }
         }
-
-        std.debug.print("xsr256_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
     }
+
+    // inline for (0..5) |_| {
+    //     const time = std.time.milliTimestamp();
+
+    //     inline for (type_arr1) |T| {
+    //         const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
+    //         defer allocator.free(arr);
+    //     }
+
+    //     std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
+    // }
+
+    // inline for (0..5) |_| {
+    //     const time = std.time.milliTimestamp();
+
+    //     inline for (type_arr2) |T| {
+    //         const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
+    //         defer allocator.free(arr);
+    //     }
+
+    //     std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
+    // }
+
+    // inline for (0..5) |_| {
+    //     const time = std.time.milliTimestamp();
+
+    //     inline for (type_arr3) |T| {
+    //         const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
+    //         defer allocator.free(arr);
+    //     }
+
+    //     std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
+    // }
+
+    // inline for (0..5) |_| {
+    //     const time = std.time.milliTimestamp();
+
+    //     inline for (type_arr4) |T| {
+    //         const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
+    //         defer allocator.free(arr);
+    //     }
+
+    //     std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
+    // }
 }
