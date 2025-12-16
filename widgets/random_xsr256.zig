@@ -41,27 +41,6 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
     return arr;
 }
 
-// test "xsr256_debug" {
-//     var xsr = xsr256_with_time_seed();
-
-//     var gpa = std.heap.DebugAllocator(.{}){};
-//     defer _ = gpa.deinit();
-//     const allocator = gpa.allocator();
-
-//     // const type_arr = [_]type{ u56, u24, u12 };
-//     const type_arr = [_]type{ u8, u12, u16, u20, u24, u28, u32, u36, u40, u44, u48, u52, u56, u60, u64 };
-
-//     inline for (type_arr) |T| {
-//         const arr = try generate_std_int_array(T, allocator, 20, &xsr);
-//         defer allocator.free(arr);
-
-//         std.debug.print("test for {}\n", .{T});
-//         for (arr[0..20]) |i| {
-//             std.debug.print("{any}\n", .{i});
-//         }
-//     }
-// }
-
 test "xsr256_test" {
     var xsr = xsr256_with_time_seed();
 
@@ -70,7 +49,6 @@ test "xsr256_test" {
     const allocator = gpa.allocator();
 
     const type_arr = [_]type{ u8, u16, u24, u32, u40, u48, u56, u64, u72, u80, u88, u96, u104, u112, u120, u128, i8, i16, i24, i32, i40, i48, i56, i64, i72, i80, i88, i96, i104, i112, i120, i128 };
-    // const type_arr = [_]type{ u8, u12, u16, u20, u24, u28, u32, u36, u40, u44, u48, u52, u56, u60, u64 };
 
     inline for (0..20) |_| {
         const time = std.time.milliTimestamp();
