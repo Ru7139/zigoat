@@ -93,19 +93,95 @@ pub fn generate_random_array(comptime T: type, allocator: std.mem.Allocator, arr
     }
 }
 
-test "xsr256_test" {
+pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, array_len: usize, xsr: *std.Random.Xoshiro256) ![]T {
+    if (@typeInfo(T) != .int) return error.TypeNotSupport;
+    if (array_len == 0) return error.ZeroArrayLength;
+
+    // const type_bits = @typeInfo(T).int.bits;
+    var arr: []T = try allocator.alloc(T, array_len);
+    var i: usize = 0;
+
+    if (T == u64) {
+        for (arr[0..array_len]) |*val| val.* = xsr.next();
+    } else if (T == u32) {
+        while (i < array_len) {
+            const xsr_value = xsr.next();
+
+            arr[i] = @truncate(xsr_value);
+            i += 1;
+
+            if (i < array_len) arr[i] = @truncate(xsr_value >> 32);
+            i += 1;
+        }
+    } else if (T == u16) {
+        while (i < array_len) {
+            const xsr_value = xsr.next();
+            inline for (0..4) |j| {
+                if (i >= array_len) break;
+                arr[i] = @truncate(xsr_value >> (j * 16));
+                i += 1;
+            }
+        }
+    } else if (T == u8) {
+        while (i < array_len) {
+            const xsr_value = xsr.next();
+            inline for (0..8) |j| {
+                if (i >= array_len) break;
+                arr[i] = @truncate(xsr_value >> (j * 8));
+                i += 1;
+            }
+        }
+    } else {
+        const random_machine = xsr.random();
+
+        for (arr[0..array_len]) |*val| {
+            val.* = random_machine.int(T);
+        }
+    }
+
+    return arr;
+}
+
+// test "xsr256_test1" {
+//     var xsr = xsr256_with_time_seed();
+
+//     var gpa = std.heap.DebugAllocator(.{}){};
+//     defer _ = gpa.deinit();
+//     const allocator = gpa.allocator();
+
+//     // const type_arr = [_]type{ u64, u32, u16, u8, f64, f32 };
+//     const type_arr = [_]type{ u64, u32, u16, u8 };
+//     inline for (0..10) |_| {
+//         const time = std.time.nanoTimestamp();
+
+//         inline for (type_arr) |T| {
+//             const arr: []T = try generate_random_array(T, allocator, 5000, &xsr);
+//             defer allocator.free(arr);
+//             // std.debug.print("\ntest of the type: {any}\n", .{T});
+//             // for (arr) |i| std.debug.print("{any}\n", .{i});
+//         }
+
+//         std.debug.print("xsr256_test1 ---> Success ---> {}ns\n", .{std.time.nanoTimestamp() - time});
+//     }
+// }
+
+test "xsr256_test2" {
     var xsr = xsr256_with_time_seed();
 
     var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    const type_arr = [_]type{ u64, u32, u16, u8, f64, f32 };
-    inline for (type_arr) |T| {
-        const arr: []T = try generate_random_array(T, allocator, 10, &xsr);
-        defer allocator.free(arr);
+    const type_arr = [_]type{ u8, u16, u24, u32, u40, u48, u56, u64, u72, u80, u88, u96, u104, u112, u120, u128, i8, i16, i24, i32, i40, i48, i56, i64, i72, i80, i88, i96, i104, i112, i120, i128 };
 
-        std.debug.print("\ntest of the type: {any}\n", .{T});
-        for (arr) |i| std.debug.print("{any}\n", .{i});
+    inline for (0..10) |_| {
+        const time = std.time.nanoTimestamp();
+
+        inline for (type_arr) |T| {
+            const arr = try generate_std_int_array(T, allocator, 5000, &xsr);
+            defer allocator.free(arr);
+        }
+
+        std.debug.print("xsr256_test2 ---> Success ---> {}ns\n", .{std.time.nanoTimestamp() - time});
     }
 }
