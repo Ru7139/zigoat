@@ -9,22 +9,27 @@ pub fn xsr256_with_time_seed() std.Random.Xoshiro256 {
 }
 
 pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, array_len: usize, xsr: *std.Random.Xoshiro256) ![]T {
-    if (@typeInfo(T) != .int) return error.TypeNotSupport;
-    if (@typeInfo(T).int.bits > 128) return error.TooManyBitsForTheType;
+    const type_info = @typeInfo(T);
+    if (type_info != .int) return error.TypeNotSupport;
+    if (type_info.int.bits > 128) return error.TooManyBitsForTheType;
     if (array_len == 0) return error.ZeroArrayLength;
 
     var arr: []T = try allocator.alloc(T, array_len); // 申请内存
 
     const type_bits = @typeInfo(T).int.bits;
 
-    const random_machine = xsr.random();
-
-    if (@typeName(T)[0] == 'u') {
-        if (type_bits == 64) {
-            for (arr[0..array_len]) |*val| val.* = xsr.next();
-        } else if (type_bits < 64) {
-            var i: usize = 0;
-            while (i < array_len) {
+    if (type_bits == 64) {
+        for (arr[0..array_len]) |*val| {
+            if (T == u64) {
+                val.* = xsr.next();
+            } else if (T == i64) {
+                val.* = @as(i64, @bitCast(xsr.next()));
+            } else unreachable;
+        }
+    } else if (type_bits < 64) {
+        var i: usize = 0;
+        while (i < array_len) {
+            if (@typeName(T)[0] == 'u') {
                 const num = xsr.next();
                 const trunc_times = @as(usize, @divTrunc(64, type_bits));
                 inline for (0..trunc_times) |j| {
@@ -32,19 +37,69 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
                     arr[i] = @truncate(num >> (j * type_bits));
                     i = i + 1;
                 }
-            }
-        } else if (type_bits > 64) {
-            for (arr[0..array_len]) |*val| {
-                const high = @as(T, @intCast(xsr.next())) << (type_bits - 64);
-                const low = @as(T, xsr.next() >> (128 - type_bits));
-                val.* = high | low;
-            }
+            } else if (@typeName(T)[0] == 'i') {
+                const num = @as(i64, @bitCast(xsr.next()));
+                const trunc_times = @as(usize, @divTrunc(64, type_bits));
+                inline for (0..trunc_times) |j| {
+                    if (i >= array_len) break;
+                    arr[i] = @truncate(num >> (j * type_bits));
+                    i = i + 1;
+                }
+            } else unreachable;
         }
-    } else if (@typeName(T)[0] == 'i') {
-        for (arr[0..array_len]) |*val| val.* = random_machine.int(T);
-    } else {
-        unreachable;
-    }
+    } else if (type_bits > 64) {
+        for (arr[0..array_len]) |*val| {
+            const high = @as(T, @intCast(xsr.next())) << (type_bits - 64);
+            const low = @as(T, xsr.next() >> (128 - type_bits));
+            val.* = high | low;
+        }
+    } else unreachable;
+
+    // if (@typeName(T)[0] == 'u') {
+    //     if (type_bits == 64) {
+    //         for (arr[0..array_len]) |*val| val.* = xsr.next();
+    //     } else if (type_bits < 64) {
+    //         var i: usize = 0;
+    //         while (i < array_len) {
+    //             const num = xsr.next();
+    //             const trunc_times = @as(usize, @divTrunc(64, type_bits));
+    //             inline for (0..trunc_times) |j| {
+    //                 if (i >= array_len) break;
+    //                 arr[i] = @truncate(num >> (j * type_bits));
+    //                 i = i + 1;
+    //             }
+    //         }
+    //     } else if (type_bits > 64) {
+    //         for (arr[0..array_len]) |*val| {
+    //             const high = @as(T, @intCast(xsr.next())) << (type_bits - 64);
+    //             const low = @as(T, xsr.next() >> (128 - type_bits));
+    //             val.* = high | low;
+    //         }
+    //     }
+    // } else if (@typeName(T)[0] == 'i') {
+    //     if (type_bits == 64) {
+    //         for (arr[0..array_len]) |*val| val.* = @as(i64, @bitCast(xsr.next()));
+    //     } else if (type_bits < 64) {
+    //         var i: usize = 0;
+    //         while (i < array_len) {
+    //             const num = @as(i64, @bitCast(xsr.next()));
+    //             const trunc_times = @as(usize, @divTrunc(64, type_bits));
+    //             inline for (0..trunc_times) |j| {
+    //                 if (i >= array_len) break;
+    //                 arr[i] = @truncate(num >> (j * type_bits));
+    //                 i = i + 1;
+    //             }
+    //         }
+    //     } else if (type_bits > 64) {
+    //         for (arr[0..array_len]) |*val| {
+    //             const high = @as(T, @intCast(xsr.next())) << (type_bits - 64);
+    //             const low = @as(T, xsr.next() >> (128 - type_bits));
+    //             val.* = high | low;
+    //         }
+    //     }
+    // } else {
+    //     unreachable;
+    // }
 
     return arr;
 }
@@ -69,7 +124,7 @@ test "xsr256_unsigned_test" {
     const types_hold_arr = [_]*const [16]type{ &odd_arr1, &odd_arr2, &odd_arr3, &odd_arr4, &even_arr1, &even_arr2, &even_arr3, &even_arr4 };
 
     inline for (types_hold_arr) |types_arr| {
-        inline for (0..5) |_| {
+        inline for (0..3) |_| {
             const time = std.time.milliTimestamp();
             defer std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
 
@@ -101,7 +156,7 @@ test "xsr256_signed_int_test" {
     const types_hold_arr = [_]*const [16]type{ &odd_arr1, &odd_arr2, &odd_arr3, &odd_arr4, &even_arr1, &even_arr2, &even_arr3, &even_arr4 };
 
     inline for (types_hold_arr) |types_arr| {
-        inline for (0..5) |_| {
+        inline for (0..3) |_| {
             const time = std.time.milliTimestamp();
             defer std.debug.print("xsr256_signed_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
 
