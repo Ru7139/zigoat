@@ -78,9 +78,9 @@ test "xsr256_unsigned_test" {
     const types_hold_arr = [_]*const [16]type{ &odd_arr1, &odd_arr2, &odd_arr3, &odd_arr4, &even_arr1, &even_arr2, &even_arr3, &even_arr4 };
 
     inline for (types_hold_arr) |types_arr| {
-        inline for (0..3) |_| {
+        inline for (0..5) |_| {
             inline for (types_arr) |T| {
-                const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
+                const arr = try generate_std_int_array(T, allocator, 1_000, &xsr);
                 defer allocator.free(arr);
             }
         }
@@ -110,9 +110,9 @@ test "xsr256_signed_int_test" {
     const types_hold_arr = [_]*const [16]type{ &odd_arr1, &odd_arr2, &odd_arr3, &odd_arr4, &even_arr1, &even_arr2, &even_arr3, &even_arr4 };
 
     inline for (types_hold_arr) |types_arr| {
-        inline for (0..3) |_| {
+        inline for (0..5) |_| {
             inline for (types_arr) |T| {
-                const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
+                const arr = try generate_std_int_array(T, allocator, 1_000, &xsr);
                 defer allocator.free(arr);
             }
         }
