@@ -69,48 +69,4 @@ test "xsr256_unsigned_test" {
             }
         }
     }
-
-    // inline for (0..5) |_| {
-    //     const time = std.time.milliTimestamp();
-
-    //     inline for (type_arr1) |T| {
-    //         const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
-    //         defer allocator.free(arr);
-    //     }
-
-    //     std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
-    // }
-
-    // inline for (0..5) |_| {
-    //     const time = std.time.milliTimestamp();
-
-    //     inline for (type_arr2) |T| {
-    //         const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
-    //         defer allocator.free(arr);
-    //     }
-
-    //     std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
-    // }
-
-    // inline for (0..5) |_| {
-    //     const time = std.time.milliTimestamp();
-
-    //     inline for (type_arr3) |T| {
-    //         const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
-    //         defer allocator.free(arr);
-    //     }
-
-    //     std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
-    // }
-
-    // inline for (0..5) |_| {
-    //     const time = std.time.milliTimestamp();
-
-    //     inline for (type_arr4) |T| {
-    //         const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
-    //         defer allocator.free(arr);
-    //     }
-
-    //     std.debug.print("xsr256_unsigned_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
-    // }
 }
