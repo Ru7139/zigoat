@@ -12,68 +12,90 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
     if (@typeInfo(T) != .int) return error.TypeNotSupport;
     if (array_len == 0) return error.ZeroArrayLength;
 
-    // const type_bits = @typeInfo(T).int.bits;
-    var arr: []T = try allocator.alloc(T, array_len);
-    var i: usize = 0;
+    var arr: []T = try allocator.alloc(T, array_len); // 申请内存
 
-    if (T == u64) {
-        for (arr[0..array_len]) |*val| val.* = xsr.next();
-    } else if (T == u32) {
-        while (i < array_len) {
-            const xsr_value = xsr.next();
+    const type_bits = @typeInfo(T).int.bits;
 
-            arr[i] = @truncate(xsr_value);
-            i += 1;
-
-            if (i < array_len) arr[i] = @truncate(xsr_value >> 32);
-            i += 1;
-        }
-    } else if (T == u16) {
-        while (i < array_len) {
-            const xsr_value = xsr.next();
-            inline for (0..4) |j| {
-                if (i >= array_len) break;
-                arr[i] = @truncate(xsr_value >> (j * 16));
-                i += 1;
+    if (@typeName(T)[0] == 'u') {
+        if (type_bits == 64) {
+            for (arr[0..array_len]) |*val| val.* = xsr.next();
+        } else if (type_bits < 64) {
+            var i: usize = 0;
+            while (i < array_len) {
+                const num = xsr.next();
+                const trunc_times = @as(usize, @divTrunc(64, type_bits));
+                inline for (0..trunc_times) |j| {
+                    if (i >= array_len) break;
+                    arr[i] = @truncate(num >> (j * type_bits));
+                    i = i + 1;
+                }
             }
+
+            // if (type_bits % 8 == 0) {
+            //     var i: usize = 0;
+            //     while (i < array_len) {
+            //         const num = xsr.next();
+            //         const trunc_times = @as(usize, @divTrunc(64, type_bits));
+            //         inline for (0..trunc_times) |j| {
+            //             if (i >= array_len) break;
+            //             arr[i] = @truncate(num >> (j * type_bits));
+            //             i = i + 1;
+            //         }
+            //     }
+            // } else {
+            //     const random_machine = xsr.random();
+            //     for (arr[0..array_len]) |*val| val.* = random_machine.int(T);
+            // }
         }
-    } else if (T == u8) {
-        while (i < array_len) {
-            const xsr_value = xsr.next();
-            inline for (0..8) |j| {
-                if (i >= array_len) break;
-                arr[i] = @truncate(xsr_value >> (j * 8));
-                i += 1;
-            }
-        }
-    } else {
+    } else if (@typeName(T)[0] == 'i') {
         const random_machine = xsr.random();
-
-        for (arr[0..array_len]) |*val| {
-            val.* = random_machine.int(T);
-        }
+        for (arr[0..array_len]) |*val| val.* = random_machine.int(T);
+    } else {
+        unreachable;
     }
 
     return arr;
 }
 
-test "xsr256_test2" {
+// test "xsr256_debug" {
+//     var xsr = xsr256_with_time_seed();
+
+//     var gpa = std.heap.DebugAllocator(.{}){};
+//     defer _ = gpa.deinit();
+//     const allocator = gpa.allocator();
+
+//     // const type_arr = [_]type{ u56, u24, u12 };
+//     const type_arr = [_]type{ u8, u12, u16, u20, u24, u28, u32, u36, u40, u44, u48, u52, u56, u60, u64 };
+
+//     inline for (type_arr) |T| {
+//         const arr = try generate_std_int_array(T, allocator, 20, &xsr);
+//         defer allocator.free(arr);
+
+//         std.debug.print("test for {}\n", .{T});
+//         for (arr[0..20]) |i| {
+//             std.debug.print("{any}\n", .{i});
+//         }
+//     }
+// }
+
+test "xsr256_test" {
     var xsr = xsr256_with_time_seed();
 
     var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    const type_arr = [_]type{ u8, u16, u24, u32, u40, u48, u56, u64, u72, u80, u88, u96, u104, u112, u120, u128, i8, i16, i24, i32, i40, i48, i56, i64, i72, i80, i88, i96, i104, i112, i120, i128 };
+    // const type_arr = [_]type{ u8, u16, u24, u32, u40, u48, u56, u64, u72, u80, u88, u96, u104, u112, u120, u128, i8, i16, i24, i32, i40, i48, i56, i64, i72, i80, i88, i96, i104, i112, i120, i128 };
+    const type_arr = [_]type{ u8, u12, u16, u20, u24, u28, u32, u36, u40, u44, u48, u52, u56, u60, u64 };
 
-    inline for (0..10) |_| {
-        const time = std.time.nanoTimestamp();
+    inline for (0..20) |_| {
+        const time = std.time.milliTimestamp();
 
         inline for (type_arr) |T| {
-            const arr = try generate_std_int_array(T, allocator, 5000, &xsr);
+            const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
             defer allocator.free(arr);
         }
 
-        std.debug.print("xsr256_test2 ---> Success ---> {}ns\n", .{std.time.nanoTimestamp() - time});
+        std.debug.print("xsr256_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
     }
 }
