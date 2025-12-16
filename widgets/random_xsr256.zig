@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const n_error = error{ ZeroArrayLength, ToDo, ShouldNotHappen, TypeNotSupport };
+const n_error = error{ ZeroArrayLength, ToDo, ShouldNotHappen, TypeNotSupport, TooManyBitsForTheType };
 
 pub fn xsr256_with_time_seed() std.Random.Xoshiro256 {
     const time_seed: u64 = @abs(std.time.timestamp()) *| 2; // @abs(i64) -> u64
@@ -10,6 +10,7 @@ pub fn xsr256_with_time_seed() std.Random.Xoshiro256 {
 
 pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, array_len: usize, xsr: *std.Random.Xoshiro256) ![]T {
     if (@typeInfo(T) != .int) return error.TypeNotSupport;
+    if (@typeInfo(T).int.bits > 128) return error.TooManyBitsForTheType;
     if (array_len == 0) return error.ZeroArrayLength;
 
     var arr: []T = try allocator.alloc(T, array_len); // 申请内存
@@ -31,8 +32,11 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
                 }
             }
         } else if (type_bits > 64) {
-            const random_machine = xsr.random();
-            for (arr[0..array_len]) |*val| val.* = random_machine.int(T);
+            for (arr[0..array_len]) |*val| {
+                const high = @as(T, @intCast(xsr.next())) << (type_bits - 64);
+                const low = @as(T, xsr.next() >> (128 - type_bits));
+                val.* = high | low;
+            }
         }
     } else if (@typeName(T)[0] == 'i') {
         const random_machine = xsr.random();
@@ -71,6 +75,11 @@ test "xsr256_unsigned_test" {
             inline for (types_arr) |T| {
                 const arr = try generate_std_int_array(T, allocator, 1_000_000, &xsr);
                 defer allocator.free(arr);
+                // if (T == u128) {
+                //     for (arr[0..20]) |value| {
+                //         std.debug.print("{x}\n", .{value});
+                //     }
+                // }
             }
         }
     }
