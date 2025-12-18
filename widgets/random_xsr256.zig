@@ -91,6 +91,13 @@ test "xsr256_int_test" {
             inline for (types_arr) |T| {
                 const arr = try generate_std_int_array(T, allocator, 100_000, &xsr);
                 defer allocator.free(arr);
+
+                // const test_type = u128;
+                // if (T == test_type) {
+                //     for (arr[0..10]) |i| {
+                //         std.debug.print("{x}\n", .{i});
+                //     }
+                // }
             }
         }
     }
