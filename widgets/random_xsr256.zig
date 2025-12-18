@@ -4,8 +4,7 @@ const n_error = error{ ZeroArrayLength, ToDo, ShouldNotHappen, TypeNotSupport, T
 
 pub fn xsr256_with_time_seed() std.Random.Xoshiro256 {
     const time_seed: u64 = @abs(std.time.timestamp()) *| 2; // @abs(i64) -> u64
-    const xsr256 = std.Random.Xoshiro256.init(time_seed);
-    return xsr256;
+    return std.Random.Xoshiro256.init(time_seed);
 }
 
 pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, array_len: usize, xsr: *std.Random.Xoshiro256) ![]T {
