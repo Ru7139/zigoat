@@ -7,46 +7,40 @@ pub fn xsr256_with_time_seed() std.Random.Xoshiro256 {
     return std.Random.Xoshiro256.init(time_seed);
 }
 
-pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, array_len: usize, xsr: *std.Random.Xoshiro256) ![]T {
+pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, arr_len: usize, xsr: *std.Random.Xoshiro256) ![]T {
     if (@typeInfo(T) != .int) return error.TypeNotSupport;
     if (@typeInfo(T).int.bits > 128) return error.TooManyBitsForTheType;
-    if (array_len == 0) return error.ZeroArrayLength;
+    if (arr_len == 0) return error.ZeroArrayLength;
 
-    var arr: []T = try allocator.alloc(T, array_len); // 申请内存
+    var arr: []T = try allocator.alloc(T, arr_len); // 申请内存
 
-    const type_bits = @typeInfo(T).int.bits;
+    const tbits = @typeInfo(T).int.bits;
 
-    if (type_bits == 64) {
-        switch (T) {
-            u64 => {
-                for (arr[0..array_len]) |*val| val.* = xsr.next();
-            },
-            i64 => {
-                for (arr[0..array_len]) |*val| val.* = @as(i64, @bitCast(xsr.next()));
-            },
-            else => unreachable,
-        }
-    } else if (type_bits < 64) {
-        const trunc_times = @as(usize, @divTrunc(64, type_bits));
-
+    if (tbits == 64) {
+        if (T == u64) {
+            for (arr[0..arr_len]) |*val| val.* = xsr.next();
+        } else if (T == i64) {
+            for (arr[0..arr_len]) |*val| val.* = @as(i64, @bitCast(xsr.next()));
+        } else unreachable;
+    } else if (tbits < 64) {
         var i: usize = 0;
-        while (i < array_len) {
+        while (i < arr_len) {
             const num = switch (@typeName(T)[0]) {
                 'u' => xsr.next(),
                 'i' => @as(i64, @bitCast(xsr.next())),
                 else => unreachable,
             };
 
-            inline for (0..trunc_times) |j| {
-                if (i >= array_len) break;
-                arr[i] = @truncate(num >> (j * type_bits));
+            inline for (0..@as(usize, @divTrunc(64, tbits))) |j| {
+                if (i >= arr_len) break;
+                arr[i] = @truncate(num >> (j * tbits));
                 i = i + 1;
             }
         }
-    } else if (type_bits > 64) {
-        for (arr[0..array_len]) |*val| {
-            const high = @as(T, @intCast(xsr.next())) << (type_bits - 64);
-            const low = @as(T, xsr.next() >> (128 - type_bits));
+    } else if (tbits > 64) {
+        for (arr[0..arr_len]) |*val| {
+            const high = @as(T, @intCast(xsr.next())) << (tbits - 64);
+            const low = @as(T, xsr.next() >> (128 - tbits));
             val.* = high | low;
         }
     } else unreachable;
