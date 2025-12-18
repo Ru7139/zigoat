@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const n_error = error{ ZeroArrayLength, ToDo, ShouldNotHappen, TypeNotSupport, TooManyBitsForTheType };
+const random_gen_error = error{ ZeroArrayLength, TypeNotSupport, TooManyBitsForTheType };
 
 pub fn xsr256_with_time_seed() std.Random.Xoshiro256 {
     const time_seed: u64 = @abs(std.time.timestamp()) *| 2; // @abs(i64) -> u64
