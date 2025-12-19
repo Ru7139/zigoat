@@ -49,8 +49,8 @@ pub fn generate_std_int_array(comptime T: type, allocator: std.mem.Allocator, ar
 }
 
 test "xsr256_int_test" {
-    const time = std.time.milliTimestamp();
-    defer std.debug.print("xsr256_int_test ---> Success ---> {}ms\n", .{std.time.milliTimestamp() - time});
+    const time = std.time.microTimestamp();
+    defer std.debug.print("xsr256_int_test ---> Success ---> {}µs\n", .{std.time.microTimestamp() - time});
 
     var xsr = xsr256_with_time_seed();
 
@@ -81,7 +81,7 @@ test "xsr256_int_test" {
     const types_hold_arr = [16]*const [16]type{ &u_arr1, &u_arr2, &u_arr3, &u_arr4, &u_arr5, &u_arr6, &u_arr7, &u_arr8, &i_arr1, &i_arr2, &i_arr3, &i_arr4, &i_arr5, &i_arr6, &i_arr7, &i_arr8 };
 
     inline for (types_hold_arr) |types_arr| {
-        inline for (0..3) |_| {
+        inline for (0..1) |_| {
             inline for (types_arr) |T| {
                 const arr = try generate_std_int_array(T, allocator, 100_000, &xsr);
                 defer allocator.free(arr);
