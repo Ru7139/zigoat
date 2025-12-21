@@ -35,7 +35,9 @@ test "count_zig_files_lines" {
 
     const allocator = std.heap.page_allocator;
 
-    const folder_path = "../../zigoat/widgets";
+    // const folder_path = "../../zigoat/widgets";
+    const folder_path = "/Users/chenzhi/Desktop/Zig/zigoat/widgets";
+
     var total_lines: usize = 0;
     try walk_zig_files_lines(folder_path, allocator, &total_lines);
 
